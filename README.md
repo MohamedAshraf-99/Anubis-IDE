@@ -1,3 +1,9 @@
+# Evolving Anubis IDE
+Evolving the editor(Anubis IDE) implemented in this project https://github.com/a1h2med/Anubis-IDE
+- Add support for the C# format
+- Editor automatically recognize which format to use based on the file extension 
+- Now you can write, edit, compile, and run C# codes
+
 # Anubis IDE
 It's an **open source** IDE code Created by **Graduation Project** Team at Faculty of **Engineering** **Ain-Shams** Univeristy .  
 
