@@ -8,11 +8,14 @@ import glob
 import serial
 
 import Python_Coloring
+import CSharp_Coloring
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from pathlib import Path
+
+programming_language = "py"
 
 def serial_ports():
     """ Lists serial port names
@@ -88,12 +91,9 @@ class text_widget(QWidget):
     def itUI(self):
         global text
         text = QTextEdit()
-        Python_Coloring.PythonHighlighter(text)
         hbox = QHBoxLayout()
         hbox.addWidget(text)
         self.setLayout(hbox)
-
-
 
 #
 #
@@ -183,11 +183,18 @@ class Widget(QWidget):
         self.setLayout(Final_Layout)
 
     # defining a new Slot (takes string) to save the text inside the first text editor
+    # Edited: checks for file extension to correctly save Python or C# code
     @pyqtSlot(str)
     def Saving(s):
-        with open('main.py', 'w') as f:
-            TEXT = text.toPlainText()
-            f.write(TEXT)
+        if programming_language == "py":
+            with open('main.py', 'w') as f:
+                TEXT = text.toPlainText()
+                f.write(TEXT)
+        else:
+            with open('main.cs', 'w') as f:
+                TEXT = text.toPlainText()
+                f.write(TEXT)
+
 
     # defining a new Slot (takes string) to set the string to the text editor
     @pyqtSlot(str)
@@ -199,6 +206,13 @@ class Widget(QWidget):
 
         nn = self.sender().model().filePath(index)
         nn = tuple([nn])
+
+        #Checks if the file is a Python or C# file to apply correct coloring
+        programming_language = nn[0].split(".")[1]
+        if programming_language == "py":
+            Python_Coloring.PythonHighlighter(text)
+        else:
+            CSharp_Coloring.CSharpHighlighter(text)
 
         if nn[0]:
             f = open(nn[0],'r')
@@ -259,6 +273,8 @@ class UI(QMainWindow):
         # I have three menu items
         filemenu = menu.addMenu('File')
         Port = menu.addMenu('Port')
+        Python = menu.addMenu('Python')
+        CSharp = menu.addMenu('C#')
         Run = menu.addMenu('Run')
 
         # As any PC or laptop have many ports, so I need to list them to the User
@@ -299,7 +315,14 @@ class UI(QMainWindow):
         filemenu.addAction(Close_Action)
         filemenu.addAction(Open_Action)
 
-
+        py_action = QAction('Python', self)
+        py_action.triggered.connect(self.python_highlighter)
+        Python.addAction(py_action)
+        
+        cs_action = QAction('C#', self)
+        cs_action.triggered.connect(self.csharp_highlighter)
+        CSharp.addAction(cs_action)
+        
         # Seting the window Geometry
         self.setGeometry(200, 150, 600, 500)
         self.setWindowTitle('Anubis IDE')
@@ -325,7 +348,12 @@ class UI(QMainWindow):
         else:
             text2.append("Please Select Your Port Number First")
 
+    def csharp_highlighter(self):
+        CSharp_Coloring.CSharpHighlighter(text)
+    def python_highlighter(self):
+        Python_Coloring.PythonHighlighter(text)
 
+            
     # this function is made to get which port was selected by the user
     @QtCore.pyqtSlot()
     def PortClicked(self):
@@ -344,12 +372,19 @@ class UI(QMainWindow):
     def open(self):
         file_name = QFileDialog.getOpenFileName(self,'Open File','/home')
 
+
+        #Checks for the file extension to apply correct coloring
+        programming_language = file_name[0].split(".")[1]
+        if programming_language == "py":
+            Python_Coloring.PythonHighlighter(text)
+        else:
+            CSharp_Coloring.CSharpHighlighter(text)
+
         if file_name[0]:
             f = open(file_name[0],'r')
             with f:
                 data = f.read()
             self.Open_Signal.reading.emit(data)
-
 
 #
 #
